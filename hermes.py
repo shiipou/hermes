@@ -93,7 +93,7 @@ class Bot (commands.Bot):
         # FIN Message de bienvenue quand les viewers salut le tchat
 
         # Message pour dire au bot de se taire (troll)
-        async def event_message(self,message):
+        async def event_message_troll(self,message):
                 quiets = ["Eh Oh, reste polis hein !",
                          "Je crois que ce martien veux communiquer",
                          "Pardon?",
