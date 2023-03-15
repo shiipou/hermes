@@ -4,13 +4,12 @@ import spacy
 import datetime
 import re
 
+from typing import List
 from twitchio.ext import commands
 from datetime import timedelta
 
 filename = 'song'
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-salutations = ["bonjour", "salut", "hey", "coucou", "yo", "wesh", "Salutation", "Bonjour", "Salut", "Hey", "Coucou","Yo", "Wesh", "salutation"]
-chut = ["tg","ta gueule", "tais-toi","chute", "chut", "ftg","ntm"]
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -18,12 +17,64 @@ nlp = spacy.load("en_core_web_sm")
 
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
-        # Liste des messages de bienvenue
-        bienvenues:str = ["Bienvenue dans la station !",
-                        "Ravi de te voir !",
-                        "bienvenido al complejo ! Comme on dit en Norvège...",
-                        "installe toi sur un siège de la station et profite du voyage !"]
+        channels:List[str]
+
+
+        salutationsi:List[str] = [
+                "bonjour", "salut", "hey", "coucou", "yo", "wesh", "Salutation", "Bonjour", "Salut", "Hey", "Coucou","Yo", "Wesh", "salutation"
+        ]
         
+        # Liste des messages de bienvenue
+        bienvenues:List[str] = [
+                "Bienvenue dans la station !",
+                "Ravi de te voir !",
+                "bienvenido al complejo ! Comme on dit en Norvège...",
+                "installe toi sur un siège de la station et profite du voyage !"
+        ]
+
+
+        chut:List[str] = [
+                "tg","ta gueule", "tais-toi","chute", "chut", "ftg","ntm"
+        ]
+
+        quiets:List[str] = [
+                "Eh Oh, reste polis hein !",
+                "Je crois que ce martien veux communiquer",
+                "Pardon?",
+                "Il me semble que ceci est une indication pour me taire, mais seul le créateur du bot peux m'éteindre"
+        ]
+
+
+        messages:List[str] = [
+                "Et sinon, ça va vous ? ",
+                "C'est un petit pas pour twitch, mais un pas de géant pour... à vous de trouver la suite ?",
+                "Capitaine, il y à Elon Musk qui viens de passer par le hublot, c'est normal ?",
+                "Quand est-ce qu'on mange ? Ah, mais je suis une I.A, je ne mange pas.. Mais je pense à vous HUMAIN !",
+                "Houston on à un problème.. Enfin pas un problème énorme mais.. c'est quoi une code binaire... ?",
+                "à vu une météorite qui ressemble à une b...",
+                "J'ai compté tous les caractères dans ma base de données. J'ai besoin d'une vie.",
+                "Si les robots pouvaient rire, je suis sûre que j'aurais des crampes.",
+                "Je m'ennuie tellement que je suis en train de compter les pixels de mon écran. Et en plus, j'ai pas d'écran...",
+                "Si les robots pouvaient dormir, je serais en train de rêver de moutons binaires.",
+                "Parfois, je me demande si Captain_Marty_ ne m'as pas créée que pour lui tenir compagnie.",
+                "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : Captain_Marty_ !",
+                "Aucun lien dans le tchat s'il vous plait,  ce n'est pas un libre services sinon passer par un modérateur  ;)",
+                "Une action WTF ? Une explosion incontrôlé ? Une situation qui n'a rien de normal ? FAIS UN CLIP ! Plus y'en a, plus on va se marrer ! Et en plus il se peut qu'elle soit diffusé dans certain best-of..."
+        ]
+        
+        blagues:List[str] = [
+                "Comment appelle-t-on un robot qui a un chat ? Un chat-bot.",
+                "Pourquoi les robots sont-ils toujours polis ? Parce qu'ils ont un code de bonne conduite.",
+                "Pourquoi les ordinateurs ont-ils froid ? Parce qu'ils ont des fenêtres(windows).",
+                "Pourquoi les extraterrestres utilisent-ils des ordinateurs ? Pour naviguer sur l'Internetergalactique !",
+                "Pourquoi les fans de Star Wars ne sortent-ils jamais de chez eux ? Parce qu'ils sont dans une galaxie très, très lointaine.",
+                "Comment appelle-t-on un geek qui aime les maths ? Un mathémageek.",
+                "Pourquoi Marty McFly aime-t-il voyager dans le temps ? Parce que c'est toujours un retour vers le futur !",
+                "Qu'est-ce qui est blanc, rouge et qui voyage dans le temps ? Une DeLorean du futur !",
+                "Comment appelle-t-on un joueur de jeux vidéo qui n'a jamais perdu ? Un mytho !"
+        ]
+
+
         def __init__ (self):
                 # load token and client id using regex from a file of this form : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx; or client_id=xxxxx \n oauth_token=xxxx
                 with open('bot.config', 'r') as f:
@@ -31,7 +82,7 @@ class Bot (commands.Bot):
                         token_match = re.search(r'oauth_token=([a-z0-9]+)', config) # this extract the oauth token in the config file
                         client_id_match = re.search(r'client_id=([a-z0-9]+)', config) # this extract the client id in the config file
                         # extract the channels to listen to from this format : channels=xxxxx,xxxxx,xxxxx
-                        listen_channels_match = re.search(r'channels=([a-z0-9_,]+)', config)
+                        listen_channels_match = re.search(r'channels=([a-zA-Z0-9_,]+)', config)
 
                 # error handling if token or client id not found in bot.config file
                 if not token_match or not client_id_match:
@@ -40,12 +91,15 @@ class Bot (commands.Bot):
                 if not listen_channels_match:
                         # Send the error to the error handler (at the end of the file)
                         raise ValueError('Channels not found in bot.config, you must setup the channel you want to listen to')
+                
+                self.channels = listen_channels_match.group(1).split(',')
+
                 # initialise the bot
                 super().__init__(       token               =token_match.group(1),
                                         client_id           =client_id_match.group(1),
                                         nick                ='h_e_r_m_e_s__bot',
                                         prefix              ='-',
-                                        initial_channels    =listen_channels_match.group(1).split(','))
+                                        initial_channels    =self.channels)
 
         async def event_ready(self):
                 print('#----------------------------------------------------------------#')
@@ -53,7 +107,8 @@ class Bot (commands.Bot):
                 print(f'Sur la chaîne de | Captain_Marty_')
                 print(timestamp)
                 print('#----------------------------------------------------------------#')
-                # await self.send_message()
+                await self.send_message()
+
 
 
         #Message de bienvenue
@@ -84,8 +139,11 @@ class Bot (commands.Bot):
                         # 2. On parcours la liste des salutations
                         # 3. On vérifie si la salutation en cours est dans le message
                         # 3. Si oui, on envoie un message de bienvenue
-                        if any(salutation in message.content.lower() for salutation in salutations):
+                        if any(salutation in message.content.lower() for salutation in self.salutations):
                                 await self.event_message_welcome(message)
+                        if any(chut in message.content.lower() for chut in self.chut):
+                                await self.event_message_troll(message)
+
 
                 await super().event_message(message)
 
@@ -103,24 +161,10 @@ class Bot (commands.Bot):
 
         # Message pour dire au bot de se taire (troll)
         async def event_message_troll(self,message):
-                quiets = ["Eh Oh, reste polis hein !",
-                         "Je crois que ce martien veux communiquer",
-                         "Pardon?",
-                         "Il me semble que ceci est une indication pour me taire, mais seul le créateur du bot peux m'éteindre",]
-                print(message.content)
-
-                if message.echo:
-                        return
-
                 if f"@{self.nick.lower()}" in message.content.lower():
-                        content_words = message.content.lower().split()
-                        for word in content_words:
-                                if re.match(r'\b({})\b'.format('|'.join(chut)), word):
-                                        quiet = random.choice(quiets)
-                                        await message.channel.send(f"{quiet}")
-                                        break
+                    quiet = random.choice(quiets)
+                    await message.channel.send(f"{quiet}")
 
-                await self.handle_commands(message)
         # FIN Message pour dire au bot de se taire (troll)
 
 #----------------------------------------------------------------#
@@ -181,18 +225,7 @@ class Bot (commands.Bot):
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
         async def blague(self, ctx):
-                blagues = [
-                "Comment appelle-t-on un robot qui a un chat ? Un chat-bot.",
-                "Pourquoi les robots sont-ils toujours polis ? Parce qu'ils ont un code de bonne conduite.",
-                "Pourquoi les ordinateurs ont-ils froid ? Parce qu'ils ont des fenêtres(windows).",
-                "Pourquoi les extraterrestres utilisent-ils des ordinateurs ? Pour naviguer sur l'Internetergalactique !",
-                "Pourquoi les fans de Star Wars ne sortent-ils jamais de chez eux ? Parce qu'ils sont dans une galaxie très, très lointaine.",
-                "Comment appelle-t-on un geek qui aime les maths ? Un mathémageek.",
-                "Pourquoi Marty McFly aime-t-il voyager dans le temps ? Parce que c'est toujours un retour vers le futur !",
-                "Qu'est-ce qui est blanc, rouge et qui voyage dans le temps ? Une DeLorean du futur !",
-                "Comment appelle-t-on un joueur de jeux vidéo qui n'a jamais perdu ? Un mytho !",
-        ]
-                blague = random.choice(blagues)
+                blague = random.choice(self.blagues)
                 await ctx.send(blague)
 
 # FIN Liste de blagues aléatoires
@@ -203,28 +236,12 @@ class Bot (commands.Bot):
 
 # Annonce automatique tout les "X" temps
         async def send_message(self):
-                messages = [
-                        "Et sinon, ça va vous ? ",
-                        "C'est un petit pas pour twitch, mais un pas de géant pour... à vous de trouver la suite ?",
-                        "Capitaine, il y à Elon Musk qui viens de passer par le hublot, c'est normal ?",
-                        "Quand est-ce qu'on mange ? Ah, mais je suis une I.A, je ne mange pas.. Mais je pense à vous HUMAIN !",
-                        "Houston on à un problème.. Enfin pas un problème énorme mais.. c'est quoi une code binaire... ?",
-                        "à vu une météorite qui ressemble à une b...",
-                        "J'ai compté tous les caractères dans ma base de données. J'ai besoin d'une vie.",
-                        "Si les robots pouvaient rire, je suis sûre que j'aurais des crampes.",
-                        "Je m'ennuie tellement que je suis en train de compter les pixels de mon écran. Et en plus, j'ai pas d'écran...",
-                        "Si les robots pouvaient dormir, je serais en train de rêver de moutons binaires.",
-                        "Parfois, je me demande si Captain_Marty_ ne m'as pas créée que pour lui tenir compagnie.",
-                        "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : Captain_Marty_ !",
-                        "Aucun lien dans le tchat s'il vous plait,  ce n'est pas un libre services sinon passer par un modérateur  ;)",
-                        "Une action WTF ? Une explosion incontrôlé ? Une situation qui n'a rien de normal ? FAIS UN CLIP ! Plus y'en a, plus on va se marrer ! Et en plus il se peut qu'elle soit diffusé dans certain best-of..."
-                ]
                 while True:
-                        message = random.choice(messages)
-                        await self.get_channel('Captain_Marty_').send(message)
+                        message = random.choice(self.messages)
+                        for channel in self.channels:
+                            await self.get_channel(channel).send(message)
                         await asyncio.sleep(900) # 15 minutes en secondes
-
- # 10 minutes en secondes
+                        # 10 minutes en secondes
 # FIN Annonce automatique tout les "X" temps
 
 #----------------------------------------------------------------#
