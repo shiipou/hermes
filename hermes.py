@@ -4,8 +4,6 @@ import spacy
 import datetime
 import re
 
-
-
 from twitchio.ext import commands
 from datetime import timedelta
 
@@ -77,7 +75,7 @@ class Bot (commands.Bot):
                         # 3. On vérifie si la salutation en cours est dans le message
                         # 3. Si oui, on envoie un message de bienvenue
                         if any(salutation in message.content.lower() for salutation in salutations):
-                                self.event_message_welcome(message)
+                                await self.event_message_welcome(message)
 
                 await super().event_message(message)
 
