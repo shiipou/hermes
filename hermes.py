@@ -30,18 +30,22 @@ class Bot (commands.Bot):
                         config = f.read() # this read the config file content
                         token_match = re.search(r'oauth_token=([a-z0-9]+)', config) # this extract the oauth token in the config file
                         client_id_match = re.search(r'client_id=([a-z0-9]+)', config) # this extract the client id in the config file
+                        # extract the channels to listen to from this format : channels=xxxxx,xxxxx,xxxxx
+                        listen_channels_match = re.search(r'channels=([a-z0-9_,]+)', config)
 
                 # error handling if token or client id not found in bot.config file
                 if not token_match or not client_id_match:
                         # Send the error to the error handler (at the end of the file)
                         raise ValueError('Token or client id not found in bot.config, you can get them from https://chatterino.com/client_login')
-
+                if not listen_channels_match:
+                        # Send the error to the error handler (at the end of the file)
+                        raise ValueError('Channels not found in bot.config, you must setup the channel you want to listen to')
                 # initialise the bot
                 super().__init__(       token               =token_match.group(1),
                                         client_id           =client_id_match.group(1),
                                         nick                ='h_e_r_m_e_s__bot',
                                         prefix              ='-',
-                                        initial_channels    =['shiishii_labs'])
+                                        initial_channels    =listen_channels_match.group(1).split(','))
 
         async def event_ready(self):
                 print('#----------------------------------------------------------------#')
