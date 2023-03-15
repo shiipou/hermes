@@ -21,14 +21,15 @@ nlp = spacy.load("en_core_web_sm")
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
         def __init__ (self):
-                # load token and client id using regex from a file of this form : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx;
+                # load token and client id using regex from a file of this form : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx; or client_id=xxxxx \n oauth_token=xxxx
                 with open('bot.config', 'r') as f:
-                        config = f.read()
-                        token_match = re.search(r'oauth_token=([a-z0-9]+)', config)
-                        client_id_match = re.search(r'client_id=([a-z0-9]+)', config)
+                        config = f.read() # this read the config file content
+                        token_match = re.search(r'oauth_token=([a-z0-9]+)', config) # this extract the oauth token in the config file
+                        client_id_match = re.search(r'client_id=([a-z0-9]+)', config) # this extract the client id in the config file
 
                 # error handling if token or client id not found in bot.config file
                 if not token_match or not client_id_match:
+                        # Send the error to the error handler (at the end of the file)
                         raise ValueError('Token or client id not found in bot.config, you can get them from https://chatterino.com/client_login')
 
                 # initialise the bot
@@ -84,11 +85,16 @@ class Bot (commands.Bot):
                 """
                 Envoie un message de bienvenue quand les viewers salut le tchat
                 """
+                # ce qui est au dessus est la doc de la méthode, elle est utilisée par les IDE pour afficher de l'aide
+
+                # Liste des messages de bienvenue
                 bienvenues = ["Bienvenue dans la station !",
                                 "Ravi de te voir !",
                                 "bienvenido al complejo ! Comme on dit en Norvège...",
                                 "installe toi sur un siège de la station et profite du voyage !"]
+                # On choisit un message de bienvenue au hasard
                 bienvenue = random.choice(bienvenues)
+                # On envoie le message au tchat
                 await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
         # FIN Message de bienvenue quand les viewers salut le tchat
 
@@ -225,6 +231,7 @@ class Bot (commands.Bot):
 
 # FIN Question Réponse automatique avec intégration CHATGPT
 if __name__ =="__main__":
+        # try catch (catch s'appel except en python) pour gérer les erreurs connues sur le bot qui doivent ici arrêter l'execution du bot
         try:
                 bot = Bot()
                 bot.run()
