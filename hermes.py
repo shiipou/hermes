@@ -21,19 +21,19 @@ nlp = spacy.load("en_core_web_sm")
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
         def __init__ (self):
-                # load token and client id using regex from a file of this form : username=shiishii_labs;user_id=125985382;client_id=g5zg0400k4vhrx2g6xi4hgveruamlv;oauth_token=v6e6s7lsw1uearp9f6ncjpxh5icw1h;
+                # load token and client id using regex from a file of this form : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx;
                 with open('bot.config', 'r') as f:
                         config = f.read()
-                        token = re.search(r'oauth_token=([a-z0-9]+)', config).group(1)
-                        client_id = re.search(r'client_id=([a-z0-9]+)', config).group(1)
+                        token_match = re.search(r'oauth_token=([a-z0-9]+)', config)
+                        client_id_match = re.search(r'client_id=([a-z0-9]+)', config)
 
                 # error handling if token or client id not found in bot.config file
-                if not token or not client_id:
+                if not token_match or not client_id_match:
                         raise ValueError('Token or client id not found in bot.config, you can get them from https://chatterino.com/client_login')
 
                 # initialise the bot
-                super().__init__(       token               =token,
-                                        client_id           =client_id,
+                super().__init__(       token               =token_match.group(1),
+                                        client_id           =client_id_match.group(1),
                                         nick                ='h_e_r_m_e_s__bot',
                                         prefix              ='-',
                                         initial_channels    =['shiishii_labs'])
@@ -225,5 +225,10 @@ class Bot (commands.Bot):
 
 # FIN Question Réponse automatique avec intégration CHATGPT
 if __name__ =="__main__":
-        bot = Bot()
-        bot.run()
+        try:
+                bot = Bot()
+                bot.run()
+        except KeyboardInterrupt:
+                print("Bot stopped by user")
+        except ValueError as e:
+                print(f'Error: {e}')
