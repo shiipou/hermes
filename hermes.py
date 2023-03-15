@@ -18,6 +18,12 @@ nlp = spacy.load("en_core_web_sm")
 
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
+        # Liste des messages de bienvenue
+        bienvenues:str = ["Bienvenue dans la station !",
+                        "Ravi de te voir !",
+                        "bienvenido al complejo ! Comme on dit en Norvège...",
+                        "installe toi sur un siège de la station et profite du voyage !"]
+        
         def __init__ (self):
                 # load token and client id using regex from a file of this form : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx; or client_id=xxxxx \n oauth_token=xxxx
                 with open('bot.config', 'r') as f:
@@ -85,13 +91,8 @@ class Bot (commands.Bot):
                 """
                 # ce qui est au dessus est la doc de la méthode, elle est utilisée par les IDE pour afficher de l'aide
 
-                # Liste des messages de bienvenue
-                bienvenues = ["Bienvenue dans la station !",
-                                "Ravi de te voir !",
-                                "bienvenido al complejo ! Comme on dit en Norvège...",
-                                "installe toi sur un siège de la station et profite du voyage !"]
                 # On choisit un message de bienvenue au hasard
-                bienvenue = random.choice(bienvenues)
+                bienvenue = random.choice(self.bienvenues)
                 # On envoie le message au tchat
                 await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
         # FIN Message de bienvenue quand les viewers salut le tchat
