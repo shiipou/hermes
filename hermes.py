@@ -21,41 +21,75 @@ nlp = spacy.load("en_core_web_sm")
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
         def __init__ (self):
-                super().__init__(       token               ='blablabla',
-                                        client_id           ="blablabla",
+                # load token and client id using regex from a file of this form : token=oauth:1234567890abcdefg client_id=1234567890abcdefg
+                with open('bot.config', 'r') as f:
+                        config = f.read()
+                        token = re.search(r'token=(\S+)', config).group(1)
+                        client_id = re.search(r'client_id=(\S+)', config).group(1)
+
+                # error handling if token or client id not found in bot.config file
+                if not token or not client_id:
+                        raise ValueError('Token or client id not found in bot.config, you can get them from https://chatterino.com/client_login')
+
+                # initialise the bot
+                super().__init__(       token               =token,
+                                        client_id           =client_id,
                                         nick                ='h_e_r_m_e_s__bot',
                                         prefix              ='-',
-                                        initial_channels    =['Captain_Marty_'])
-                
+                                        initial_channels    =['shiishii_labs'])
+
         async def event_ready(self):
                 print('#----------------------------------------------------------------#')
                 print(f'Bot allumer sous le nom | {self.nick}')
                 print(f'Sur la chaîne de | Captain_Marty_')
                 print(timestamp)
                 print('#----------------------------------------------------------------#')
-                await self.send_message()
+                # await self.send_message()
 
 
-        #Message de bienvenue 
+        #Message de bienvenue
         async def event_message(self, message):
+
+                ### code original :
+                # if message.echo:
+                #        return
+                #
+                # print(message.content)
+                # if message.author.name.lower() != self.nick.lower():
+                #         content_words = message.content.lower().split()
+                #         for word in content_words:
+                #                 if re.match(r'\b({})\b'.format('|'.join(salutations)), word):
+                #                         bienvenue = random.choice(bienvenues)
+                #                         await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
+                #                         break
+                ###
+
+                # Ignorer les messages du bot lui-même
+                if message.author.name.lower() != self.nick.lower():
+                        ## Vérifier si le message contient une salutation
+                        # Pour expliquer ce code, je vais utiliser un exemple :
+                        # message.content = "Bonjour, je m'appelle John"
+                        # salutations = ["bonjour", "salut", "hey", "coucou", "yo", "wesh", "Salutation", "Bonjour", "Salut", "Hey", "Coucou","Yo", "Wesh", "salutation"]
+                        #
+                        # 1. On transforme le message en minuscule
+                        # 2. On parcours la liste des salutations
+                        # 3. On vérifie si la salutation en cours est dans le message
+                        # 3. Si oui, on envoie un message de bienvenue
+                        if any(salutation in message.content.lower() for salutation in salutations):
+                                self.event_message_welcome(message)
+
+                await super().event_message(message)
+
+        async def event_message_welcome(self, message: str):
+                """
+                Envoie un message de bienvenue quand les viewers salut le tchat
+                """
                 bienvenues = ["Bienvenue dans la station !",
                                 "Ravi de te voir !",
                                 "bienvenido al complejo ! Comme on dit en Norvège...",
                                 "installe toi sur un siège de la station et profite du voyage !"]
-                
-                if message.echo:
-                        return
-                
-                print(message.content)
-                if message.author.name.lower() != self.nick.lower():
-                        content_words = message.content.lower().split()
-                        for word in content_words:
-                                if re.match(r'\b({})\b'.format('|'.join(salutations)), word):
-                                        bienvenue = random.choice(bienvenues)
-                                        await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
-                                        break
-
-                await self.handle_commands(message)
+                bienvenue = random.choice(bienvenues)
+                await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
         # FIN Message de bienvenue quand les viewers salut le tchat
 
         # Message pour dire au bot de se taire (troll)
@@ -64,7 +98,8 @@ class Bot (commands.Bot):
                          "Je crois que ce martien veux communiquer",
                          "Pardon?",
                          "Il me semble que ceci est une indication pour me taire, mais seul le créateur du bot peux m'éteindre",]
-                
+                print(message.content)
+
                 if message.echo:
                         return
 
@@ -88,13 +123,13 @@ class Bot (commands.Bot):
         @commands.cooldown(1, 120, commands.Bucket.user)
         async def bonjour(self, ctx: commands.Context):
                 await ctx.send(f'Bonjour {ctx.author.name}!')
-                
+
         #cmd (commandes)
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
         async def cmd(self, ctx: commands.Context):
                 await ctx.send('blague, pet, hermes, bonjour, gg, song, pub ...|... Toutes mes commandes utilise le préfix "-"')
-        
+
         #hermes
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
@@ -132,7 +167,7 @@ class Bot (commands.Bot):
                 message = "Voici la musique en cours : " + content
                 await ctx.send(message)
 
-                
+
         #blagues
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
@@ -179,7 +214,7 @@ class Bot (commands.Bot):
                         message = random.choice(messages)
                         await self.get_channel('Captain_Marty_').send(message)
                         await asyncio.sleep(900) # 15 minutes en secondes
-        
+
  # 10 minutes en secondes
 # FIN Annonce automatique tout les "X" temps
 
@@ -192,9 +227,3 @@ class Bot (commands.Bot):
 if __name__ =="__main__":
         bot = Bot()
         bot.run()
-
-
-
-
-
-
