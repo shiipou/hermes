@@ -20,7 +20,7 @@ class Bot (commands.Bot):
         channels:List[str]
 
 
-        salutationsi:List[str] = [
+        salutations:List[str] = [
                 "bonjour", "salut", "hey", "coucou", "yo", "wesh", "Salutation", "Bonjour", "Salut", "Hey", "Coucou","Yo", "Wesh", "salutation"
         ]
         
