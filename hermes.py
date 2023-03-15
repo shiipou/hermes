@@ -21,8 +21,8 @@ nlp = spacy.load("en_core_web_sm")
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
         def __init__ (self):
-                super().__init__(       token               ='oauth:na0d6dzj4bwunuwvb9clnm0pt23j4a',
-                                        client_id           ="yh654gfxw71r45h7jofkew4lemvasy",
+                super().__init__(       token               ='blablabla',
+                                        client_id           ="blablabla",
                                         nick                ='h_e_r_m_e_s__bot',
                                         prefix              ='-',
                                         initial_channels    =['Captain_Marty_'])
