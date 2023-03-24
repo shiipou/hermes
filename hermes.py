@@ -4,19 +4,19 @@ import spacy
 import datetime
 import re
 
+
 from typing import List
 from twitchio.ext import commands
 from datetime import timedelta
 
 filename = 'song'
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-nlp = spacy.load("en_core_web_sm")
 
 
 #----------------------------------------------------------------#
-
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
+
         channels:List[str]
 
 
@@ -91,8 +91,7 @@ class Bot (commands.Bot):
                 if not listen_channels_match:
                         # Send the error to the error handler (at the end of the file)
                         raise ValueError('Channels not found in bot.config, you must setup the channel you want to listen to')
-                
-                self.channels = listen_channels_match.group(1).split(',')
+                self.channels=listen_channels_match.group(1).split(',')
 
                 # initialise the bot
                 super().__init__(       token               =token_match.group(1),
@@ -107,26 +106,14 @@ class Bot (commands.Bot):
                 print(f'Sur la chaîne de | Captain_Marty_')
                 print(timestamp)
                 print('#----------------------------------------------------------------#')
-                await self.send_message()
+                asyncio.gather(
+                  self.send_message_talk()
+                  self.send_message_info()
+                )
 
 
-
-        #Message de bienvenue
+        #Traitement des messages et redirection vers le bon event de message
         async def event_message(self, message):
-
-                ### code original :
-                # if message.echo:
-                #        return
-                #
-                # print(message.content)
-                # if message.author.name.lower() != self.nick.lower():
-                #         content_words = message.content.lower().split()
-                #         for word in content_words:
-                #                 if re.match(r'\b({})\b'.format('|'.join(salutations)), word):
-                #                         bienvenue = random.choice(bienvenues)
-                #                         await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
-                #                         break
-                ###
 
                 # Ignorer les messages du bot lui-même
                 if message.author.name.lower() != self.nick.lower():
@@ -139,49 +126,52 @@ class Bot (commands.Bot):
                         # 2. On parcours la liste des salutations
                         # 3. On vérifie si la salutation en cours est dans le message
                         # 3. Si oui, on envoie un message de bienvenue
-                        if any(salutation in message.content.lower() for salutation in self.salutations):
-                                await self.event_message_welcome(message)
                         if any(chut in message.content.lower() for chut in self.chut):
                                 await self.event_message_troll(message)
 
-
+                # Finalisation de l'event
                 await super().event_message(message)
+            
 
-        async def event_message_welcome(self, message: str):
-                """
-                Envoie un message de bienvenue quand les viewers salut le tchat
-                """
-                # ce qui est au dessus est la doc de la méthode, elle est utilisée par les IDE pour afficher de l'aide
-
-                # On choisit un message de bienvenue au hasard
-                bienvenue = random.choice(self.bienvenues)
-                # On envoie le message au tchat
-                await message.channel.send(f"Bonjour {message.author.name} {bienvenue}")
-        # FIN Message de bienvenue quand les viewers salut le tchat
-
-        # Message pour dire au bot de se taire (troll)
+        #Message user de troll
+        async def event_message(self, message):
+                if message.echo:
+                        return
+                print(timestamp, message.author.name, ": ", message.content)
+                if message.author.name.lower() != self.nick.lower():
+                        if any(chut in message.content.lower() for chut in chuts):
+                                await self.event_message_troll(message)
+                await super().event_message(message)
+        
+        # Réponse troll du bot 
         async def event_message_troll(self,message):
+                if message.echo:
+                        return
                 if f"@{self.nick.lower()}" in message.content.lower():
-                    quiet = random.choice(quiets)
-                    await message.channel.send(f"{quiet}")
+                        quiet = random.choice(quiets)
+                        await message.channel.send(f"{quiet}")
+                                        
+                await self.handle_commands(message)
 
-        # FIN Message pour dire au bot de se taire (troll)
-
-#----------------------------------------------------------------#
 
 # Les commande utilisant le préfix "-"
 
-        #Bonjour
+        #bjr
         @commands.command()
-        @commands.cooldown(1, 120, commands.Bucket.user)
-        async def bonjour(self, ctx: commands.Context):
-                await ctx.send(f'Bonjour {ctx.author.name}!')
+        @commands.cooldown(1, 10, commands.Bucket.user)
+        async def bjr(self,ctx):
+                bienvenues:str = ["Bienvenue dans la station !",
+                                "Ravi de te voir !",
+                                "Bienvenido al complejo ! Comme on dit en Norvège...",
+                                "Buenos Dias Amigo ! (oui je parle congolais)",
+                                "Installe toi sur un siège de la station et profite du voyage !"]
+                await ctx.send(f"captai1440Heyfree Bonjour , {random.choice(self.bienvenues)} ! captai1440Heyfree")
 
         #cmd (commandes)
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
         async def cmd(self, ctx: commands.Context):
-                await ctx.send('blague, pet, hermes, bonjour, gg, song, pub ...|... Toutes mes commandes utilise le préfix "-"')
+                await ctx.send('blague, pet, hermes, bjr, gg, song, pub ...|... Toutes mes commandes utilise le préfix "-"')
 
         #hermes
         @commands.command()
@@ -207,8 +197,6 @@ class Bot (commands.Bot):
         async def pub(self,ctx):
                 await ctx.send(f"Regarde en dessous de la fenêtre de stream {ctx.author.name} tu retrouveras tous mes réseaux sociaux !")
 
-
-
         #music en cours avec une lecture de fichier ".txt"
         #song
         @commands.command()
@@ -220,35 +208,64 @@ class Bot (commands.Bot):
                 message = "Voici la musique en cours : " + content
                 await ctx.send(message)
 
-
-        #blagues
+        #blague
         @commands.command()
         @commands.cooldown(1, 120, commands.Bucket.user)
         async def blague(self, ctx):
                 blague = random.choice(self.blagues)
                 await ctx.send(blague)
-
 # FIN Liste de blagues aléatoires
-
 # FIN Les commandes avec le préfix "-"
-
 #----------------------------------------------------------------#
-
 # Annonce automatique tout les "X" temps
-        async def send_message(self):
+        async def hello():
+                message_info =[
+                        "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : Captain_Marty_ !",
+                        "Aucun lien dans le tchat s'il vous plait,  ce n'est pas un libre services sinon passer par un modérateur  ;)",
+                        "Une action WTF ? Une explosion incontrôlé ? Une situation qui n'a rien de normal ? FAIS UN CLIP ! Plus y'en a, plus on va se marrer ! Et en plus il se peut qu'elle soit diffusé dans certain best-of..."
+                ]
+
+
+
+
+
+        async def send_message_talk(self):
+                messages = [
+                         "Et sinon, ça va vous ? ",
+                         "C'est un petit pas pour twitch, mais un pas de géant pour... à vous de trouver la suite ?",
+                         "Capitaine, il y à Elon Musk qui viens de passer par le hublot, c'est normal ?",
+                         "Quand est-ce qu'on mange ? Ah, mais je suis une I.A, je ne mange pas.. Mais je pense à vous HUMAIN !",
+                         "Houston on à un problème.. Enfin pas un problème énorme mais.. c'est quoi une code binaire... ?",
+                         "à vu une météorite qui ressemble à une b...",
+                         "J'ai compté tous les caractères dans ma base de données. J'ai besoin d'une vie.",
+                        "Si les robots pouvaient rire, je suis sûre que j'aurais des crampes.",
+                         "Si les robots pouvaient dormir, je serais en train de rêver de moutons binaires.",
+                         "Parfois, je me demande si Captain_Marty_ ne m'as pas créée que pour lui tenir compagnie.",
+                ]
                 while True:
-                        message = random.choice(self.messages)
+                        await asyncio.sleep(1200) # 20 minutes en secondes
+                        message = random.choice(messages)
                         for channel in self.channels:
-                            await self.get_channel(channel).send(message)
-                        await asyncio.sleep(900) # 15 minutes en secondes
-                        # 10 minutes en secondes
+                                await self.get_channel(channel).send(message)
+
+        
+        async def send_message_info(self):
+                message_info =[
+                        "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : Captain_Marty_ !",
+                        "Aucun lien dans le tchat s'il vous plait,  ce n'est pas un libre services sinon passer par un modérateur  ;)",
+                        "Une action WTF ? Une explosion incontrôlé ? Une situation qui n'a rien de normal ? FAIS UN CLIP ! Plus y'en a, plus on va se marrer ! Et en plus il se peut qu'elle soit diffusé dans certain best-of..."
+                ]
+                while True:
+                        await asyncio.sleep(3) # 5 minutes en secondes
+                        info=random.choice(message_info)
+                        for channel in self.channels:
+                                await self.get_channel(channel).send(info)
+
+
 # FIN Annonce automatique tout les "X" temps
 
 #----------------------------------------------------------------#
-
 # Question Réponse automatique avec intégration CHATGPT
-
-
 # FIN Question Réponse automatique avec intégration CHATGPT
 if __name__ =="__main__":
         # try catch (catch s'appel except en python) pour gérer les erreurs connues sur le bot qui doivent ici arrêter l'execution du bot
@@ -259,3 +276,4 @@ if __name__ =="__main__":
                 print("Bot stopped by user")
         except ValueError as e:
                 print(f'Error: {e}')
+
