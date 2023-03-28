@@ -1,2 +1,3 @@
 spacy==3.5.1
 twitchio==2.5.0
+pydub==0.25.1
