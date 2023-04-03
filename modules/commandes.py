@@ -10,9 +10,6 @@ class commandsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-#----------------------------------------------------------------#
-
-
     #bjr
     @commands.command()
     @commands.cooldown(1, 5, commands.Bucket.user)
@@ -102,7 +99,4 @@ class commandsCog(commands.Cog):
     #     # Envoi du message dans le chat Twitch
     #     await ctx.channel.send(message)
 
-
-
-#----------------------------------------------------------------
 
