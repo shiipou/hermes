@@ -10,8 +10,11 @@ from modules import event_message
 from modules.chatGPT import chatgpt
 from son_viewers import sound_viewers
 from modules import commandes
+from modules.games.games import Game as StoryGame
+from modules.games.story import Story
 
 from twitchio.ext import commands
+
 
 filename = 'song'
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -23,14 +26,15 @@ nlp = spacy.load("en_core_web_sm")
 # ----------------------------------------------------------------#
 # Créez une instance de bot Twitch.
 class Bot (commands.Bot):
-    channels: str
-    personnality: str
-    channel_rules: str
+    channels: str = None
+    personnality: str = None
+    channel_rules: str = None
+    story_game: StoryGame = None
 
     def __init__(self):
         # charger le jeton et l'identifiant du client en utilisant une expression rationnelle à partir d'un fichier de cette forme : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx; or client_id=xxxxx \n oauth_token=xxxx
         with open('bot.config', 'r') as f:
-            config = f.read()  # ce qui permet de lire le contenu du fichier de configuration
+            config = f.read() # ce qui permet de lire le contenu du fichier de configuration
             # il extrait le jeton oauth dans le fichier de configuration
             token_match = re.search(r'oauth_token=([a-z0-9]+)', config)
             # il extrait l'identifiant du client dans le fichier de configuration
@@ -82,6 +86,7 @@ class Bot (commands.Bot):
             event_message.send_message_wakeup(self),
             event_message.send_message_info(self),
             event_message.send_message_talk(self),
+            sound_viewers.loop_sounds(self),
         )
 
     # Message user du tchat
@@ -93,12 +98,45 @@ class Bot (commands.Bot):
 
         # Regarde dans le message User si il contient  "troll" ou "chatgpt" ou "son du viewers"
         if message.author.name.lower() != self.nick.lower():
+            if self.story_game is not None and self.story_game.player.lower() == message.author.name.lower():
+                if self.story_game.story.max_player_interaction - len(self.story_game.story.adventures) <= 0:
+                    await message.channel.send("Félicitation, vous avez terminé l'histoire ! Merci d'avoir joué !")
+                    self.story_game = None
+                    return
+                msg = self.story_game.play(message.content)
+                await message.channel.send(msg)
+                return
+            
             if f"@{self.nick.lower()}" in message.content.lower():
                 await chatgpt.event_message_gpt(self, message)
             if f"-{message.author.name.lower()}" in message.content.lower():
                 print(timestamp, message.author.name, ": son du viewers")
                 await sound_viewers.play(self, message.channel, message.author.name.lower())
         await super().event_message(message)
+
+    # story game
+    @commands.command(name='start_game', aliases=['sg', 'story', 'game'])
+    @commands.cooldown(1, 900, commands.Bucket.user)
+    async def start_game(self, ctx):
+        user = ctx.author.name
+
+        if self.story_game is not None:
+            if user.lower() == self.story_game.player.lower():
+                await ctx.send(f"@{user}, désolé tu es déjà en train de jouer!")
+                return
+            
+            await ctx.send(f"@{user}, désolé un jeu est déjà en cours. Attends ton tour!")
+            return
+
+        init_msg = ctx.message.content.split(' ', 1)[1]
+        if (init_msg is None or init_msg == ''):
+            ctx.send(f"@{user}, désolé, tu dois donner un context d'histoire!")
+            return
+        
+        await ctx.send(f"Attends je met ça en place pour toi {user} !")
+        self.story_game = StoryGame(user, Story(15, init_msg))
+        game_init_message = self.story_game.start()
+        await ctx.send(game_init_message)
 
  # ----------------------------------------------------------------#
 

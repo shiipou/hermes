@@ -1,0 +1,1 @@
+The story must end in maximum {interactions_left} player interactions.
