@@ -1,4 +1,3 @@
-import random
 import asyncio
 import spacy
 import datetime
@@ -8,16 +7,15 @@ import twitchapi
 
 from modules import event_message
 from modules.chatGPT import chatgpt
-from son_viewers import sound_viewers
 from modules import commandes
+from son_viewers import sound_viewers
 
 from twitchio.ext import commands, sounds
 from datetime import timedelta
 
 
 filename = 'song'
-timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-quiets = ["Eh Oh, reste polis hein !", "Je crois que ce martien veux communiquer", "Pardon?", "Il me semble que ceci est une indication pour me taire, mais seul le créateur du bot peux m'éteindre",]
+timestamp = datetime.datetime.now().strftime("%d-%m-%Y -- %H:%M:%S")
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -70,13 +68,14 @@ class Bot (commands.Bot):
                                         #initial_channels    =['Captain_Marty_']),
                                         initial_channels    =self.channels
                                 ),
+                self.add_cog(commandes.commandsCog(self))
 
 
         async def event_ready(self):
                 print('#----------------------------------------------------------------#')
                 print(f'Bot allumer sous le nom | {self.nick}')
                 print(f'Sur la chaîne de | Captain_Marty_')
-                print(timestamp)
+                print(f'Date, Heure : {timestamp}')
                 print('#----------------------------------------------------------------#')
                 await asyncio.gather(
                         event_message.send_message_wakeup(self),
@@ -92,7 +91,7 @@ class Bot (commands.Bot):
                         return
                 print(timestamp, message.author.name, ": ", message.content)
 
-                #Regarde dans le message User si il contient  "troll" ou "chatgpt" ou "son du viewers"
+                #Regarde dans le message User si il contient "chatgpt" ou "son du viewers"
                 if message.author.name.lower() != self.nick.lower():
                         if f"@{self.nick.lower()}" in message.content.lower():
                                 await chatgpt.event_message_gpt(self, message)
@@ -105,11 +104,12 @@ class Bot (commands.Bot):
 
 
 if __name__ =="__main__":
+        nick = 'h_e_r_m_e_s__bot'
         # try catch (catch s'appel except en python) pour gérer les erreurs connues sur le bot qui doivent ici arrêter l'execution du bot
         try:
                 bot = Bot()
                 bot.run()
         except KeyboardInterrupt:
-                print("Bot arrêté par l'utilisateur")
+                print(f'Le bot : {nick} , est stoppé par l\'utilisateur')
         except ValueError as e:
                 print(f'Error: {e}')
