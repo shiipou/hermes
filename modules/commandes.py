@@ -2,7 +2,7 @@ import random
 # import requests
 # import json
 
-from twitchio.ext import commands, sounds
+from twitchio.ext import commands
 from son_viewers import sound_viewers
 
 

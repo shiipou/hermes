@@ -52,5 +52,5 @@ async def event_message_gpt(self, message):
     # channel_info = await self.twitchApi.channel_info('Captain_Marty_')
     response = generate_response(self, message, channel_settings)
     print(timestamp, self.nick, ": ", response)
-    await message.channel.send(f"{response}")
+    await self.send_message(message.channel, response)
 

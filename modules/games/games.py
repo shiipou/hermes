@@ -80,4 +80,5 @@ class Game:
             presence_penalty=0
         )
         self.story.adventures.append(adventures.choices[0].message)
+        self.story.player_interaction += 1
         return adventures.choices[0].message.content

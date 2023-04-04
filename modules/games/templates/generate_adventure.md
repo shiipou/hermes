@@ -23,4 +23,6 @@ You must always reply using the langage of the user's prompt.
 
 You must write your answer in French.
 
+You'll reply only with super short answer.
+
 You can reply to player only {max_player_interaction} more times.
