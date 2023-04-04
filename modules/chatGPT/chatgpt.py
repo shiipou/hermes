@@ -54,4 +54,3 @@ async def event_message_gpt(self, message):
     print(timestamp, self.nick, ": ", response)
     await message.channel.send(f"{response}")
 
-# FIN Intégration chatGPT

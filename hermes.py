@@ -64,75 +64,75 @@ class Bot (commands.Bot):
         openai.api_key = openai_api_key_match.group(1)
 
         # initialise the bot
-        super().__init__(token=token_match.group(1),
-                         client_id=client_id_match.group(1),
-                         nick='h_e_r_m_e_s__bot',
-                         prefix='-',
-                         # initial_channels    =['Captain_Marty_']),
-                                initial_channels=self.channels
+        super().__init__(   token=token_match.group(1),
+                            client_id=client_id_match.group(1),
+                            nick='h_e_r_m_e_s__bot',
+                            prefix='-',
+                            # initial_channels    =['Captain_Marty_']),
+                            initial_channels=self.channels
                          ),
         self.add_cog(commandes.commandsCog(self))
 
-        async def event_ready(self):
-            print('#----------------------------------------------------------------#')
-            print(f'Bot allumer sous le nom | {self.nick}')
-            print(f'Sur la chaîne de | Captain_Marty_')
-            print(f'Date, Heure : {timestamp}')
-            print('#----------------------------------------------------------------#')
-            await asyncio.gather(
-                event_message.send_message_wakeup(self),
-                event_message.send_message_info(self),
-                event_message.send_message_talk(self),
-            )
+    async def event_ready(self):
+        print('#----------------------------------------------------------------#')
+        print(f'Bot allumer sous le nom | {self.nick}')
+        print(f'Sur la chaîne de | Captain_Marty_')
+        print(f'Date, Heure : {timestamp}')
+        print('#----------------------------------------------------------------#')
+        await asyncio.gather(
+            event_message.send_message_wakeup(self),
+            event_message.send_message_info(self),
+            event_message.send_message_talk(self),
+        )
 
-        # Message user du tchat
+    # Message user du tchat
 
-        async def event_message(self, message):
-            if message.echo:
-                return
-            print(timestamp, message.author.name, ": ", message.content)
+    async def event_message(self, message):
+        if message.echo:
+            return
+        print(timestamp, message.author.name, ": ", message.content)
 
-            # Regarde dans le message User si il contient "chatgpt" ou "son du viewers"
-            if message.author.name.lower() != self.nick.lower():
-                if self.story_game is not None and self.story_game.player.lower() == message.author.name.lower():
-                    if self.story_game.story.max_player_interaction - len(self.story_game.story.adventures) <= 0:
-                        await message.channel.send("Félicitation, vous avez terminé l'histoire ! Merci d'avoir joué !")
-                        self.story_game = None
-                        return
-                    msg = self.story_game.play(message.content)
-                    await message.channel.send(msg)
+        # Regarde dans le message User si il contient "chatgpt" ou "son du viewers"
+        if message.author.name.lower() != self.nick.lower():
+            if self.story_game is not None and self.story_game.player.lower() == message.author.name.lower():
+                if self.story_game.story.max_player_interaction - len(self.story_game.story.adventures) <= 0:
+                    await message.channel.send("Vous pouvez retourner à vos occupation. Merci d'avoir fait appel à moi. Vous pourrez me redemander de l'aide dans 300sec")
+                    self.story_game = None
                     return
-                if f"@{self.nick.lower()}" in message.content.lower():
-                    await chatgpt.event_message_gpt(self, message)
-                if f"-{message.author.name.lower()}" in message.content.lower():
-                    print(timestamp, message.author.name, ": son du viewers")
-                    await sound_viewers.play(self, message.channel, message.author.name.lower())
-            await super().event_message(message)
+                msg = self.story_game.play(message.content)
+                await message.channel.send(msg)
+                return
+            if f"@{self.nick.lower()}" in message.content.lower():
+                await chatgpt.event_message_gpt(self, message)
+            if f"-{message.author.name.lower()}" in message.content.lower():
+                print(timestamp, message.author.name, ": son du viewers")
+                await sound_viewers.play(self, message.channel, message.author.name.lower())
+        await super().event_message(message)
 
-            # story game
-        @commands.command(name='start_game', aliases=['sg', 'story', 'game'])
-        @commands.cooldown(1, 900, commands.Bucket.user)
-        async def start_game(self, ctx):
-            user = ctx.author.name
+    # story game
+    @commands.command(name='start_game', aliases=['sg', 'story', 'game', 'sos'])
+    @commands.cooldown(1, 300, commands.Bucket.user)
+    async def start_game(self, ctx):
+        user = ctx.author.name
 
-            if self.story_game is not None:
-                if user.lower() == self.story_game.player.lower():
-                    await ctx.send(f"@{user}, désolé tu es déjà en train de jouer!")
-                    return
-
-                await ctx.send(f"@{user}, désolé un jeu est déjà en cours. Attends ton tour!")
+        if self.story_game is not None:
+            if user.lower() == self.story_game.player.lower():
+                await ctx.send(f"@{user}, désolé ta demande d'aide est déjà pris en compte.")
                 return
 
-            init_msg = ctx.message.content.split(' ', 1)[1]
-            if (init_msg is None or init_msg == ''):
-                ctx.send(
-                    f"@{user}, désolé, tu dois donner un context d'histoire!")
-                return
+            await ctx.send(f"@{user}, désolé une demande d'aide est déjà en cours d'utilisation.")
+            return
 
-            await ctx.send(f"Attends je met ça en place pour toi {user} !")
-            self.story_game = StoryGame(user, Story(15, init_msg))
-            game_init_message = self.story_game.start()
-            await ctx.send(game_init_message)
+        init_msg = ctx.message.content.split(' ', 1)[1]
+        if (init_msg is None or init_msg == ''):
+            ctx.send(
+                f"@{user}, désolé, je n'ai pas compris votre demande, veuillez reformuler.")
+            return
+
+        await ctx.send(f"Instruction reçu {user} je vais m'occuper de vous. Veuillez patientez le temps que je traite votre demande.")
+        self.story_game = StoryGame(user, Story(15, init_msg))
+        game_init_message = self.story_game.start()
+        await ctx.send(game_init_message)
 
  # ----------------------------------------------------------------#
 

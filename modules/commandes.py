@@ -1,6 +1,6 @@
 import random
-import requests
-import json
+# import requests
+# import json
 
 from twitchio.ext import commands, sounds
 from son_viewers import sound_viewers
@@ -98,5 +98,4 @@ class commandsCog(commands.Cog):
 
     #     # Envoi du message dans le chat Twitch
     #     await ctx.channel.send(message)
-
 
