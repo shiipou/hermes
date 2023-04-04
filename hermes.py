@@ -95,12 +95,12 @@ class Bot (commands.Bot):
         # Regarde dans le message User si il contient "chatgpt" ou "son du viewers"
         if message.author.name.lower() != self.nick.lower():
             if self.story_game is not None and self.story_game.player.lower() == message.author.name.lower():
-                if self.story_game.story.max_player_interaction - len(self.story_game.story.adventures) <= 0:
-                    await message.channel.send("Vous pouvez retourner à vos occupation. Merci d'avoir fait appel à moi. Vous pourrez me redemander de l'aide dans 300sec")
+                if self.story_game.story.max_player_interaction - self.story_game.story.player_interaction <= 0:
+                    await message.channel.send("Félicitation, vous avez terminé l'histoire ! Merci d'avoir joué !")
                     self.story_game = None
                     return
                 msg = self.story_game.play(message.content)
-                await message.channel.send(msg)
+                await self.send_message(message.channel, msg)
                 return
             if f"@{self.nick.lower()}" in message.content.lower():
                 await chatgpt.event_message_gpt(self, message)
@@ -108,6 +108,15 @@ class Bot (commands.Bot):
                 print(timestamp, message.author.name, ": son du viewers")
                 await sound_viewers.play(self, message.channel, message.author.name.lower())
         await super().event_message(message)
+
+    # Send message to chat
+    async def send_message(self, channel, message):
+        # split the message into multiple messages using regex if it's more than 450 characters
+        messages = re.findall(r'.{1,450}(?:\s|$)', message)
+        print(messages)
+        for msg in messages:
+            await channel.send(msg)
+        return
 
     # story game
     @commands.command(name='start_game', aliases=['sg', 'story', 'game', 'sos'])
@@ -132,7 +141,7 @@ class Bot (commands.Bot):
         await ctx.send(f"Instruction reçu {user} je vais m'occuper de vous. Veuillez patientez le temps que je traite votre demande.")
         self.story_game = StoryGame(user, Story(15, init_msg))
         game_init_message = self.story_game.start()
-        await ctx.send(game_init_message)
+        await self.send_message(ctx, game_init_message)
 
  # ----------------------------------------------------------------#
 
