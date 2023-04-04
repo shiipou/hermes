@@ -5,7 +5,7 @@ from modules.games.story import Story
 
 import os
 
-PLAYER_MAX_INTERACTION = 10
+PLAYER_MAX_INTERACTION = 15
 PLAYER_MAX_INTERACTION_PROMPT: str = None
 GENERATE_STORY_PROMPT: str = None
 GENERATE_ADVENTURE_PROMPT: str = None
@@ -25,7 +25,7 @@ class Game:
         self.story = story
 
     def start(self):
-        print(f'Starting a game for {self.player} !')
+        print(f'Démmarage du jeu pour {self.player} !')
         story_plot = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[

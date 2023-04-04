@@ -86,7 +86,6 @@ class Bot (commands.Bot):
         )
 
     # Message user du tchat
-
     async def event_message(self, message):
         if message.echo:
             return
@@ -96,7 +95,7 @@ class Bot (commands.Bot):
         if message.author.name.lower() != self.nick.lower():
             if self.story_game is not None and self.story_game.player.lower() == message.author.name.lower():
                 if self.story_game.story.max_player_interaction - len(self.story_game.story.adventures) <= 0:
-                    await message.channel.send("Vous pouvez retourner à vos occupation. Merci d'avoir fait appel à moi. Vous pourrez me redemander de l'aide dans 300sec")
+                    await message.channel.send("Vous pouvez retourner à vos occupation. Merci d'avoir fait appel à moi. Vous pourrez me redemander de l'aide dans 20min")
                     self.story_game = None
                     return
                 msg = self.story_game.play(message.content)
@@ -111,7 +110,7 @@ class Bot (commands.Bot):
 
     # story game
     @commands.command(name='start_game', aliases=['sg', 'story', 'game', 'sos'])
-    @commands.cooldown(1, 300, commands.Bucket.user)
+    @commands.cooldown(1, 1200, commands.Bucket.user)
     async def start_game(self, ctx):
         user = ctx.author.name
 
