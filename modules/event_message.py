@@ -19,7 +19,7 @@ async def send_message_talk(self):
 
 async def send_message_info(self):
     message_info = [
-        "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : Captain_Marty_ !",
+        "Toi aussi tu veux prend par à une aventure intergalactistream ? Alors balance un petit follow, et on y va tous ensemble, c'est un vrai soutient pour mon créateur : CptMarty_ !",
         "Aucun lien dans le tchat s'il vous plait, ce n'est pas un libre services sinon passer par un modérateur  ;)",
         "Une action WTF ? Une explosion incontrôlé ? Une situation qui n'a rien de normal ? FAIS UN CLIP ! Plus y'en a, plus on va se marrer ! Et en plus il se peut qu'il soit diffusé dans certain best-of..."
     ]
