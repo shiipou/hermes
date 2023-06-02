@@ -5,6 +5,7 @@ import re
 import openai
 import twitchapi
 
+
 from modules import event_message
 from modules.chatGPT import chatgpt
 from modules import commandes
@@ -15,7 +16,6 @@ from modules.games.story import Story
 
 from twitchio.ext import commands
 from discord_bot import DiscordBot
-
 
 filename = 'song'
 timestamp = datetime.datetime.now().strftime("%d-%m-%Y -- %H:%M:%S")
@@ -50,6 +50,11 @@ class Bot (commands.Bot):
             
         self.discord_bot = DiscordBot()
 
+            discord_token_match = re.search(
+                r'discord_token=([a-zA-Z0-9\.\_\-]+)', config)
+            discord_channel_id_match = re.search(
+                r'discord_channel_id=([0-9]+)', config)
+
         self.twitchApi = twitchapi.TwitchApi(
             client_id_match.group(1), token_match.group(1))
         with open('modules/chatGPT/personnality_rules.md', 'r') as f:
@@ -70,13 +75,19 @@ class Bot (commands.Bot):
         self.channels = listen_channels_match.group(1).split(',')
         openai.api_key = openai_api_key_match.group(1)
 
+        discord_token: str = discord_token_match.group(1)
+        discord_channel_id: int = int(discord_channel_id_match.group(1))
+
+        self.discord_bot = DiscordBot(
+            token=discord_token, channel=discord_channel_id)
+        
         # initialise the bot
-        super().__init__(   token=token_match.group(1),
-                            client_id=client_id_match.group(1),
-                            nick='h_e_r_m_e_s__bot',
-                            prefix='-',
-                            # initial_channels    =['Captain_Marty_']),
-                            initial_channels=self.channels
+        super().__init__(token=token_match.group(1),
+                         client_id=client_id_match.group(1),
+                         nick='h_e_r_m_e_s__bot',
+                         prefix='-',
+                         # initial_channels    =['Captain_Marty_']),
+                         initial_channels=self.channels
                          ),
         self.add_cog(commandes.commandsCog(self))
         self.add_cog(subscribtion.SubscriptionCog(self))
@@ -91,6 +102,7 @@ class Bot (commands.Bot):
             event_message.send_message_wakeup(self),
             event_message.send_message_info(self),
             event_message.send_message_talk(self),
+            self.discord_bot.start(token=self.discord_bot.token, reconnect=True)
         )
 
     # Message user du tchat
@@ -149,6 +161,14 @@ class Bot (commands.Bot):
         self.story_game = StoryGame(user, Story(15, init_msg))
         game_init_message = self.story_game.start()
         await self.send_message(ctx, game_init_message)
+
+    @commands.command(name='to_discord')
+    async def to_discord(self, ctx):
+        # Get the message from the Twitch chat
+        message = ctx.message.content
+        # Send the message to Discord
+        await self.discord_bot.send_message_to_discord(f'@{ctx.author.name}')
+        await self.discord_bot.send_message_to_discord(f'/imagine prompt="${message}"')
 
  # ----------------------------------------------------------------#
 

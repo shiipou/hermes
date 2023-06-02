@@ -1,12 +1,19 @@
 import discord
 
-class MyClient(discord.Client):
+import asyncio
+
+class DiscordBot(discord.Client):
+    token: str = None
+    channel_id: int = None
+
+    def __init__(self, token: str, channel: int):
+        self.token = token
+        self.channel_id = channel
+        super().__init__(intents=discord.Intents.all())
+
     async def on_ready(self):
-        print('Logged on as', self.user)
+        print('Logged to Discord as', self.user)
 
     async def send_message_to_discord(self, message):
-        channel_id = 'your_discord_channel_id'  # Replace with your Discord channel ID
-        channel = self.get_channel(int(channel_id))
+        channel = self.get_channel(self.channel_id)
         await channel.send(message)
-
-discord_client = MyClient()
