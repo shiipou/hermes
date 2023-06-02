@@ -11,7 +11,7 @@ async def send_message_talk(self):
                     "J'ai compté tous les caractères dans ma base de données. J'ai besoin d'une vie.",
         ]
         while True:
-                await asyncio.sleep(1200) # 20 minutes en secondes
+                await asyncio.sleep(1380) # 23 minutes en secondes
                 message = random.choice(messages)
                 for channel in self.channels:
                         await self.get_channel(channel).send(message)

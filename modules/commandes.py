@@ -1,10 +1,11 @@
 import random
-# import requests
-# import json
+import requests
+import json
+import twitchio
+
 
 from twitchio.ext import commands
 from son_viewers import sound_viewers
-
 
 class commandsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -55,6 +56,13 @@ class commandsCog(commands.Cog):
     async def pub(self,ctx):
             await ctx.send(f"Regarde en dessous de la fenêtre de stream {ctx.author.name} tu retrouveras tous mes réseaux sociaux !")
 
+    #help
+    @commands.command()
+    @commands.cooldown(1, 120, commands.Bucket.user)
+    async def help(self,ctx):
+            await ctx.send(f"Pour me demander de l'aide, utilise la commande 'sos' + [ton message], pense à bien décrire, c'est important! ")
+
+
     #music en cours avec une lecture de fichier ".txt"
     #song
     @commands.command()
@@ -75,27 +83,41 @@ class commandsCog(commands.Cog):
             if ctx.author.is_broadcaster:
                 await sound_viewers.play(self, ctx, username)
 
+    #ETS2 Mod
+    @commands.command()
+    @commands.cooldown(1, 120, commands.Bucket.user)
+    async def etsmod(self,ctx):
+            await ctx.send(f"Voici les mods que j'utilise : https://docs.google.com/spreadsheets/d/1bhOgikyoc-ZcrD4imM6rCCw1MnMfJsDP0KU7QdIf1MM/edit?usp=sharing")
+  
 
-    # #meteo (spatial)
-    # @commands.command()
-    # @commands.cooldown(1, 120, commands.Bucket.user)
-    # async def meteo(self, ctx):
-    #     # Configuration de l'API de la NASA
-    #     API_URL = "https://api.nasa.gov/DONKI/"
-    #     ENDPOINT = "notifications?type=all&api_key=disfJjDgT7DMmaYBaLtdRPvzchdJIcUrH50FDGlD"
-
-    #     # Appel à l'API de la NASA pour récupérer les informations
-    #     response = requests.get(API_URL + ENDPOINT)
-    #     data = response.json()
-
-
-    #     # Récupération des informations
-    #     solar_wind_speed = data[0]['solarWindSpeed']
-    #     solar_wind_density = data[0]['solarWindDensity']
-    #     x_ray_flux = data[0]['xrayFlux']
-    #     kp_index = data[0]['kpIndex']
-    #     message = f"Conditions météorologiques exterrieur à la station : vitesse du vent solaire = {solar_wind_speed} km/s, densité du vent solaire = {solar_wind_density} p/cm3, flux de rayons X = {x_ray_flux}, indice géomagnétique terrestre (Kp) = {kp_index}."
-
-    #     # Envoi du message dans le chat Twitch
-    #     await ctx.channel.send(message)
-
+    #titre
+    @commands.command()
+    @commands.cooldown(1, 1, commands.Bucket.user)
+    async def titre(self, ctx):
+        mots_cles1 = [
+            "La galaxie",
+            "Les explorateurs",
+            "L'aventure",
+            "Les Denis",
+            "Le voyage",
+            "Les voyages",
+            "La planète",
+            "Les astéroïdes",
+            "Les vaisseaux",
+            "Area",
+            "Hermes"
+            ]
+        mots_cles2 = [
+            "perdu",
+            "seul",
+            "désanchanté",
+            "renouveaux",
+            "enchanté",
+            "libre",
+            "intriguant",
+            "dangereux",
+            "destiné",
+            "58",
+            "62"
+        ]
+        await ctx.send(f"{random.choice(mots_cles1)} {random.choice(mots_cles2)}")

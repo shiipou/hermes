@@ -8,11 +8,13 @@ import twitchapi
 from modules import event_message
 from modules.chatGPT import chatgpt
 from modules import commandes
+from modules import subscribtion
 from son_viewers import sound_viewers
 from modules.games.games import Game as StoryGame
 from modules.games.story import Story
 
 from twitchio.ext import commands
+from discord_bot import DiscordBot
 
 
 filename = 'song'
@@ -27,6 +29,7 @@ class Bot (commands.Bot):
     personnality: str = None
     channel_rules: str = None
     story_game: StoryGame = None
+    discord_bot: DiscordBot = None
 
     def __init__(self):
         # charger le jeton et l'identifiant du client en utilisant une expression rationnelle à partir d'un fichier de cette forme : username=xxxxxx;user_id=xxxxxx;client_id=xxxxx;oauth_token=xxxx; or client_id=xxxxx \n oauth_token=xxxx
@@ -42,6 +45,10 @@ class Bot (commands.Bot):
                 r'channels=([a-zA-Z0-9_,]+)', config)
             openai_api_key_match = re.search(
                 r'openai_api_key=([a-zA-Z0-9_\-,]+)', config)
+            
+            discord_token = re.search(r'client_id=([a-z0-9]+)', config)
+            
+        self.discord_bot = DiscordBot()
 
         self.twitchApi = twitchapi.TwitchApi(
             client_id_match.group(1), token_match.group(1))
@@ -72,11 +79,12 @@ class Bot (commands.Bot):
                             initial_channels=self.channels
                          ),
         self.add_cog(commandes.commandsCog(self))
+        self.add_cog(subscribtion.SubscriptionCog(self))
 
     async def event_ready(self):
         print('#----------------------------------------------------------------#')
         print(f'Bot allumer sous le nom | {self.nick}')
-        print(f'Sur la chaîne de | Captain_Marty_')
+        print(f'Sur la chaîne de | CptMarty_')
         print(f'Date, Heure : {timestamp}')
         print('#----------------------------------------------------------------#')
         await asyncio.gather(
